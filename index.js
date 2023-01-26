@@ -1,15 +1,15 @@
 //import all modules
 const inquirer = require('inquirer');
-const express = require('express');
+//const express = require('express');
 // Import and require mysql2
 const mysql = require('mysql2');
 
 const PORT = process.env.PORT || 3001;
-const app = express();
+//const app = express();
 
 // Express middleware
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+//app.use(express.urlencoded({ extended: false }));
+//app.use(express.json());
 
 // Connect to database
 const db = mysql.createConnection(
@@ -27,13 +27,13 @@ const db = mysql.createConnection(
 
 function mainmenu() {
     inquirer
-    .prompt([
+    .prompt(
     {type: 'list',
         message: 'What would you like to do?',
         name: 'mainmenu',
         choices: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department']
         }
-    ])
+    )
     .then(function(response) {
  //All Employees       
         if (response === 'View All Employees') {
@@ -63,29 +63,26 @@ function mainmenu() {
                     name: 'addEmplastname'
                 },
                 {type: 'input',
-                    message: 'Department:',
-                    name: 'addEmpDept'
+                    message: 'Employee role ID:',
+                    name: 'addEmpRoleId'
                 },
                 {type: 'input',
-                    message: 'Role:',
-                    name: 'addEmpRole'
-                },
-                {type: 'input',
-                    message: 'Salary:',
-                    name: 'addEmpSal'
-                },
-                {type: 'input',
-                    message: 'Manager name (leave blank if this employee is a manager):',
+                    message: 'Manager ID (leave blank if no manager):',
                     name: 'addEmpMan'
                 }
                 ])
             .then(function(response) {
-//create new instance of class Employee
-//console log Emplyee
-//connect to sql db
-//run INSERT INTO employees(Employee)
-//VALUES (addEmpId, addEmpName, addEmpDept, addEmpRole,  addEmpSal, addEmpMan)
-            })
+            const newEmp = new Employee(response.addEmpId, response.addEmpfirstname, response.addEmplastname, response.addEmpRoleId, response.addEmpMan)
+            console.log(newEmp);
+            db.query(`INSERT INTO employee (?)`, newEmp, (err, result) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(result);
+                }
+            });
+            mainmenu();
+            });
 
 
 
