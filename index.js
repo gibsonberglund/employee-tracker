@@ -3,6 +3,8 @@ const inquirer = require('inquirer');
 const express = require('express');
 // Import and require mysql2
 const mysql = require('mysql2');
+const { response } = require('express');
+const Role = require('./Dev/Role');
 
 // const PORT = process.env.PORT || 3001;
 // const app = express();
@@ -22,30 +24,66 @@ const db = mysql.createConnection(
     }
 );
 
-//functions for each mainmenu choice
+
+//functions for viewing options
 function viewEmps() {
     db.query('SELECT * FROM employees', function (err, results) {
-        console.log(results)
+        console.table(results)
     });
     mainmenu();
 };
 
 function viewRoles() {
     db.query('SELECT * FROM roles', function (err, results) {
-        console.log(results)
+        console.table(results)
     });
     mainmenu();
 };
+
+function viewDepts() {
+    db.query('SELECT * FROM departments', function (err, results) {
+        console.table(results)
+    });
+    mainmenu();
+};
+
+//Add a Dept
+
+//set original number of depts
+let deptArray = [1, 2, 3, 4];
+
+function createDept() {
+    inquirer
+    .prompt([
+        {
+            type: 'input',
+            message: 'What is the department name?',
+            name: 'addDeptName'
+        }
+    ])
+    .then(function(response) {
+        console.log(response);
+        deptArray.push(deptArray.length + 1);
+        db.query(`INSERT INTO departments (id, title)VALUES (${deptArray.length + 1}, '${response.addDeptName}')`, (err, result) => {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            };
+        });
+    mainmenu();
+    });
+};
+
+//Add a role
+
+// set original number of roles
+let roleArray = [1, 2, 3, 4, 5, 6, 7, 8];
 
 //inquirer and db query for adding role
 function addRole() {
     inquirer
         .prompt([
-            {
-                type: 'input',
-                message: 'What is the role ID number?',
-                name: 'addRoleId'
-            },
             {
                 type: 'input',
                 message: 'What is the role title?',
@@ -57,13 +95,15 @@ function addRole() {
                 name: 'addRoleSal'
             },
             {
-                type: 'input',
-                message: 'What is the department ID for this role?',
-                name: 'addRoleDeptId'
+                type: 'list',
+                message: 'Which department does this role belong to?',
+                name: 'addRoleDept',
+                choices: deptArray
             }
         ])
         .then(function(response) {
-            db.query(`INSERT INTO roles (id, title, salary, dept_id)VALUES (${response.addRoleId}, '${response.addRoleTitle}', ${response.addRoleSal}, ${response.addRoleDeptId});`, (err, result) => {
+            roleArray.push(roleArray.length + 1);
+            db.query(`INSERT INTO roles (id, title, salary, dept_id)VALUES (${roleArray.length + 1}, '${response.addRoleTitle}', ${response.addRoleSal}, ${response.addRoleDept});`, (err, result) => {
                 if (err) {
                     console.log(err);
                 } else {
@@ -71,52 +111,16 @@ function addRole() {
                 };
                 mainmenu();
             });
-    });
-};
+            });
+        };
 
-function viewDepts() {
-    db.query('SELECT * FROM departments', function (err, results) {
-        console.log(results)
-    });
-    mainmenu();
-};
+//Add an employee
+let empIdArray = [1, 2, 3, 4, 5, 6, 7, 8];
+let manArray = [1, 2, 3, 4];
 
-function createDept() {
-    inquirer
-    .prompt([
-        {
-            type: 'input',
-            message: 'What is the department ID number?',
-            name: 'addDeptId'
-        },
-        {
-            type: 'input',
-            message: 'What is the department name?',
-            name: 'addDeptName'
-        }
-    ])
-    .then(function(response) {
-        console.log(response);
-        db.query(`INSERT INTO departments (id, title)VALUES (${response.addDeptId}, '${response.addDeptName}')`, (err, result) => {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(result);
-            };
-        });
-    mainmenu();
-    });
-};
-
-//inquirer and db query for adding an employee
 function addEmp() {
     inquirer
         .prompt([
-            {
-                type: 'input',
-                message: 'Employee ID number:',
-                name: 'addEmpId'
-            },
             {
                 type: 'input',
                 message: 'Employee first name:',
@@ -128,20 +132,23 @@ function addEmp() {
                 name: 'addEmplastname'
             },
             {
-                type: 'input',
+                type: 'list',
                 message: 'Employee role ID:',
-                name: 'addEmpRoleId'
+                name: 'addEmpRoleId',
+                choices: empIdArray
             },
             {
-                type: 'input',
-                message: 'Manager ID (leave blank if no manager):',
-                name: 'addEmpMan'
+                type: 'list',
+                message: 'Manager ID:',
+                name: 'addEmpMan',
+                choices: manArray
             }
         ])
         .then(function (response) {
             //const newEmp = new Employee(response.addEmpId, response.addEmpfirstname, response.addEmplastname, response.addEmpRoleId, response.addEmpMan)
             console.log(response);
-            db.query(`INSERT INTO employees (id, first_name, last_name, role_id, manager_id)VALUES (${response.addEmpId}, '${response.addEmpfirstname}', '${response.addEmplastname}', ${response.addEmpRoleId}, ${response.addEmpMan});`, (err, result) => {
+            empIdArray.push(empIdArray.length + 1);
+            db.query(`INSERT INTO employees (id, first_name, last_name, role_id, manager_id)VALUES (${empIdArray.length + 1}, '${response.addEmpfirstname}', '${response.addEmplastname}', ${response.addEmpRoleId}, ${response.addEmpMan});`, (err, result) => {
                 if (err) {
                     console.log(err);
                 } else {
@@ -157,14 +164,16 @@ function updateEmp() {
     inquirer
         .prompt([
             {
-                type: 'input',
-                message: 'Enter the ID number of the employee you would like to update',
-                name: 'upEmpId'
+                type: 'list',
+                message: 'Which employee would you like to update (by ID): ',
+                name: 'upEmpId',
+                choices: empIdArray
             },
             {
-                type: 'input',
-                message: 'Enter the new role ID of this employee',
-                name: 'newRoleId'
+                type: 'list',
+                message: 'What is the new role ID for this employee: ',
+                name: 'newRoleId',
+                choices: roleArray
             }
         ])
         .then(function(response) {

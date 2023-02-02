@@ -1,7 +1,7 @@
 class Dept {
-    constructor(deptId, deptname) {
+    constructor(deptId, deptName) {
         this.deptId = deptId;
-        this.deptname = deptname;
+        this.deptName = deptName;
     }
 };
 
